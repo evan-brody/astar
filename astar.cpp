@@ -15,7 +15,7 @@
 #define GRID_WIDTH 50
 #define WALL 1
 #define START 2
-#define SOLUTION_PATH 2
+#define SOLUTION_PATH 4
 #define GOAL 5
 
 // CONSTANTS
@@ -167,24 +167,20 @@ int main() {
         exit(1);
     }
 
-    std::vector<int> myV = { 1 };
-    myV.insert(myV.begin(), 2);
-    std::cout << myV[0] << std::endl;
-
     // Read start pos
     int x, y;
     mapData >> x >> y;
     Vector startPos(x, y);
-    std::cout << startPos << std::endl;
 
     // Read goal pos
     mapData >> x >> y;
     Vector goalPos(x, y);
-    std::cout << goalPos << std::endl;
 
     double k;
+    std::cout << "Enter a value for k: ";
     std::cin >> k;
 
+    // Initialize map
     Map map(startPos, goalPos, mapData, k);
     mapData.close();
 
@@ -531,10 +527,6 @@ void Map::pathFind() {
 void Map::writeToFile(std::ofstream& outputFile) {
     size_t depth = solutionPath.size() - 1;
     size_t numGenerated = generated.size();
-    for (const Node* solNodePtr : solutionPath) {
-        const Vector& solNodePos(solNodePtr->getPos());
-        grid[solNodePos.getX()][solNodePos.getY()] = SOLUTION_PATH;
-    }
 
     // Write depth
     outputFile << depth << '\n';
