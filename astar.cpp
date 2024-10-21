@@ -186,6 +186,7 @@ int main() {
 
     map.pathFind();
 
+    // Output solution info to file
     std::ofstream solutionFile("solution.txt");
     map.writeToFile(solutionFile);
     solutionFile.close();
@@ -439,6 +440,7 @@ Map::Map(const Vector& startPos, const Vector& goalPos,
 }
 
 Map::Map(const Map& rhs) : startPos(rhs.startPos), goalPos(rhs.goalPos), k(rhs.k) {
+    // Deep copy grid
     for (size_t i = 0; i < GRID_WIDTH; i++) {
         for (size_t j = 0; j < GRID_HEIGHT; j++) {
             grid[i][j] = rhs.grid[i][j];
@@ -446,6 +448,7 @@ Map::Map(const Map& rhs) : startPos(rhs.startPos), goalPos(rhs.goalPos), k(rhs.k
         }
     }
 
+    // Deep copy generated and frontier nodes
     for (const Node* nodePtr : rhs.frontier) {
         frontier.push_back(new Node(*nodePtr));
     }
@@ -458,11 +461,18 @@ Map::Map(const Map& rhs) : startPos(rhs.startPos), goalPos(rhs.goalPos), k(rhs.k
 Map& Map::operator=(const Map& rhs) {
     if (this == &rhs) { return *this; }
 
+    // Clear out our own information
     for (const Node* nodePtr : generated) {
         delete nodePtr;
     }
     generated.clear();
     frontier.clear();
+    solutionPath.clear();
+
+    // Copy all fields, deeply where necessary
+    startPos = rhs.startPos;
+    goalPos = rhs.goalPos;
+    k = rhs.k;
 
     for (size_t i = 0; i < GRID_HEIGHT; i++) {
         for (size_t j = 0; j < GRID_WIDTH; j++) {
@@ -471,19 +481,23 @@ Map& Map::operator=(const Map& rhs) {
         }
     }
 
+    for (const Node* nodePtr : rhs.generated) {
+        generated.push_back(new Node(*nodePtr));
+    }
+
     for (const Node* nodePtr : rhs.frontier) {
         frontier.push_back(new Node(*nodePtr));
     }
 
-    for (const Node* nodePtr : rhs.generated) {
-        generated.push_back(new Node(*nodePtr));
+    for (const Node* nodePtr : rhs.solutionPath) {
+        solutionPath.push_back(new Node(*nodePtr));
     }
 
     return *this;
 }
 
 Map::~Map() {
-    // Generated is a superset of frontier
+    // Generated is a superset of frontier and solutionPath
     for (const Node* nodePtr : generated) {
         delete nodePtr;
     }
@@ -492,8 +506,13 @@ Map::~Map() {
 }
 
 void Map::pathFind() {
-    if (startPos == goalPos) { return; }
+    // In this case, no work to do
+    if (startPos == goalPos) {
+        solutionPath.push_back(new Node(*this, startPos));
+        return;
+    }
 
+    // Expand the root node to begin
     const Node* startNode = new Node(*this, startPos);
     generated.push_back(startNode);
     expand(*startNode);
@@ -501,6 +520,8 @@ void Map::pathFind() {
     const Node* next = nullptr;
     bool reachedGoal = false;
 
+    // Continually expand the lowest cost node
+    // from the frontier until it runs out or we reach the goal node
     while (!(frontier.empty() || reachedGoal)) {
         next = frontier.back();
         frontier.pop_back();
@@ -516,11 +537,12 @@ void Map::pathFind() {
         }
         // Solution path will hold the root and goal nodes
         solutionPath.push_back(backtrack);
-        // Put solution path in correct order
+        // Put solution path in correct order (start at index 0)
         std::reverse(solutionPath.begin(), solutionPath.end());
     }
     else {
         std::cerr << "Pathfinding failed.\n";
+        return;
     }
 }
 
@@ -575,7 +597,6 @@ const Vector& Map::getGoalPos() const {
 /// @param parent   Node        the Node to find the neighbours of
 /// @param toFill   std::vector the vector to fill
 void Map::getNeighbours(const Node& parent, std::vector<const Node*>& toFill) const {
-    // Declare a reference to the node's position Vector
     const Vector& parentPos(parent.getPos());
     double parentCost = parent.getCost();
     const Vector& parentOrientation = parent.getOrientation();
@@ -641,19 +662,13 @@ bool Map::expand(const Node& toExpand) {
         generated.push_back(nodePtr);
     }
 
-    if (frontier.empty()) {
-        frontier.push_back(neighbors.back());
-        neighbors.pop_back();
-    }
-
-    // Insert the rest into the frontier
+    // Insert the neighbors into the frontier while maintaining sorted order
+    // (most costly node at index 0)
     for (const Node* nodePtr : neighbors) {
         std::vector<const Node*>::const_iterator it = frontier.begin();
 
         // Find where it should be in the sorted frontier
-        while (it != frontier.end() && **it > *nodePtr) {
-            it++;
-        }
+        while (it != frontier.end() && **it > *nodePtr) { it++; }
         frontier.insert(it, nodePtr);
     }
     neighbors.clear();
