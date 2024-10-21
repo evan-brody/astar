@@ -5,7 +5,6 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
-#include <unordered_set>
 #include <numbers>
 #include <algorithm>
 #include <cmath>
@@ -257,10 +256,11 @@ double Vector::getMagnitude() const {
 // In degrees
 double Vector::getAngleBetween(const Vector& other) const {
     double denominator = getMagnitude() * other.getMagnitude();
-    if (0 == denominator) { return 0; }
+    if (0 == denominator) { return 0; } // Prevent dividing by 0
 
     double radians = acos((*this * other) / denominator);
 
+    // Convert to degrees before returning
     return radians * 180.0 / std::numbers::pi;
 }
 
@@ -431,6 +431,7 @@ std::ostream& operator<<(std::ostream& os, const Map& map) {
 Map::Map(const Vector& startPos, const Vector& goalPos,
     std::ifstream& inputFile, const double k)
     : startPos(startPos), goalPos(goalPos), k(k) {
+    // Use the input file to initialize the grid
     for (size_t j = GRID_HEIGHT; j > 0; j--) {
         for (size_t i = 0; i < GRID_WIDTH; i++) {
             inputFile >> grid[i][j - 1];
@@ -440,7 +441,7 @@ Map::Map(const Vector& startPos, const Vector& goalPos,
 }
 
 Map::Map(const Map& rhs) : startPos(rhs.startPos), goalPos(rhs.goalPos), k(rhs.k) {
-    // Deep copy grid
+    // Deep copy grid and visited
     for (size_t i = 0; i < GRID_WIDTH; i++) {
         for (size_t j = 0; j < GRID_HEIGHT; j++) {
             grid[i][j] = rhs.grid[i][j];
@@ -651,9 +652,6 @@ bool Map::expand(const Node& toExpand) {
     // Find all neighbors
     std::vector<const Node*> neighbors;
     getNeighbours(toExpand, neighbors);
-
-    // If there are no neighbors, we have no work to do
-    if (neighbors.empty()) { return false; }
 
     // Store neighbours
     for (const Node* nodePtr : neighbors) {
