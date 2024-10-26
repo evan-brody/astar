@@ -5,6 +5,8 @@
 #include "../inc/vector.hpp"
 #include "../inc/map.hpp"
 
+#include "../inc/node.hpp"
+
 #include <fstream>
 #include <iostream>
 
@@ -43,9 +45,12 @@ int main() {
 
     map.pathFind();
 
+    // Create solution file
+    size_t lastDotPos = inputFilename.find_last_of('.'); // Remove file extension
+    std::ofstream solutionFile(
+        inputFilename.substr(0, lastDotPos) + solutionSuffix
+    );
     // Output solution info to file
-    size_t lastDotPos = inputFilename.find_last_of('.');
-    std::ofstream solutionFile(inputFilename.substr(0, lastDotPos) + solutionSuffix);
     map.writeToFile(solutionFile);
     solutionFile.close();
 

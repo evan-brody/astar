@@ -59,9 +59,9 @@ namespace AStar {
         return Vector(std::abs(x), std::abs(y));
     }
 
-    int Vector::getX() const { return x; }
+    short Vector::getX() const { return x; }
 
-    int Vector::getY() const { return y; }
+    short Vector::getY() const { return y; }
 
     int Vector::getManhattanDistance(const Vector& other) const {
         return std::abs(this->x - other.x) + std::abs(this->y - other.y);

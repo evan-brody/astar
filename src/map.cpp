@@ -7,6 +7,8 @@
 #include "../inc/node.hpp"
 
 #include <iostream>
+#include <unordered_set>
+#include <vector>
 #include <fstream>
 #include <cmath>
 
@@ -27,15 +29,6 @@ namespace AStar {
             os << '\n';
         }
 
-        os << '\n';
-
-        for (size_t j = GRID_HEIGHT; j > 0; j--) {
-            for (size_t i = 0; i < GRID_WIDTH; i++) {
-                os << map.visited[i][j - 1] << ' ';
-            }
-            os << '\n';
-        }
-
         return os;
     }
 
@@ -46,17 +39,17 @@ namespace AStar {
         for (size_t j = GRID_HEIGHT; j > 0; j--) {
             for (size_t i = 0; i < GRID_WIDTH; i++) {
                 inputFile >> grid[i][j - 1];
-                visited[i][j - 1] = false;
             }
         }
     }
 
-    Map::Map(const Map& rhs) : startPos(rhs.startPos), goalPos(rhs.goalPos), k(rhs.k) {
-        // Deep copy grid and visited
+    Map::Map(const Map& rhs)
+    : previousStates(rhs.previousStates), startPos(rhs.startPos),
+    goalPos(rhs.goalPos), k(rhs.k) {
+        // Deep copy grid
         for (size_t i = 0; i < GRID_WIDTH; i++) {
             for (size_t j = 0; j < GRID_HEIGHT; j++) {
                 grid[i][j] = rhs.grid[i][j];
-                visited[i][j] = rhs.visited[i][j];
             }
         }
 
@@ -81,16 +74,17 @@ namespace AStar {
         generated.clear();
         frontier.clear();
         solutionPath.clear();
+        previousStates.clear();
 
         // Copy all fields, deeply where necessary
         startPos = rhs.startPos;
         goalPos = rhs.goalPos;
         k = rhs.k;
+        previousStates = rhs.previousStates;
 
         for (size_t i = 0; i < GRID_HEIGHT; i++) {
             for (size_t j = 0; j < GRID_WIDTH; j++) {
                 grid[i][j] = rhs.grid[i][j];
-                visited[i][j] = rhs.visited[i][j];
             }
         }
 
@@ -118,6 +112,7 @@ namespace AStar {
         generated.clear();
         frontier.clear();
         solutionPath.clear();
+        previousStates.clear();
     }
 
     void Map::pathFind() {
@@ -232,10 +227,8 @@ namespace AStar {
                     continue;
                 }
 
-                // Check that we're not looking at a wall or
-                // previously visited position
-                if (WALL == grid[maybeNeighbourX][maybeNeighbourY] ||
-                    visited[maybeNeighbourX][maybeNeighbourY]) {
+                // Check that we're not looking at a wall
+                if (WALL == grid[maybeNeighbourX][maybeNeighbourY]) {
                     continue;
                 }
 
@@ -245,6 +238,13 @@ namespace AStar {
                     maybeNeighbourX,
                     maybeNeighbourY
                 );
+
+                // Check that we haven't generated this state already
+                // Requires C++ 20
+                if (previousStates.contains(neighbour->getStateHash())) {
+                    delete neighbour;
+                    continue;
+                }
 
                 // Add to our neighbours vector (unsorted)
                 toFill.push_back(neighbour);
@@ -267,9 +267,8 @@ namespace AStar {
 
         // Store neighbours
         for (const Node* nodePtr : neighbors) {
-            const Vector& nodePos = nodePtr->getPos();
-            visited[nodePos.getX()][nodePos.getY()] = true;
             generated.push_back(nodePtr);
+            previousStates.insert(nodePtr->getStateHash());
         }
 
         // Insert the neighbors into the frontier while maintaining sorted order

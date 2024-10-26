@@ -8,6 +8,7 @@
 #include "vector.hpp"
 
 #include <vector>
+#include <unordered_set>
 #include <iostream>
 #include <fstream>
 
@@ -57,10 +58,10 @@ namespace AStar {
         bool expand(const Node& toExpand);
 
         int grid[GRID_WIDTH][GRID_HEIGHT];
-        bool visited[GRID_WIDTH][GRID_HEIGHT];
         std::vector<const Node*> frontier;
         std::vector<const Node*> generated;
         std::vector<const Node*> solutionPath;
+        std::unordered_set<uint64_t> previousStates;
         Vector startPos;
         Vector goalPos;
         double k;

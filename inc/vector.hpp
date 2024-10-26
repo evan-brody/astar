@@ -23,9 +23,9 @@ namespace AStar {
 
         Vector abs() const;
 
-        int getX() const;
+        int16_t getX() const;
 
-        int getY() const;
+        int16_t getY() const;
 
         int getManhattanDistance(const Vector& other) const;
 
@@ -37,7 +37,7 @@ namespace AStar {
         double dist(const Vector& other) const;
 
     private:
-        int x, y;
+        int16_t x, y;
     };
 
     bool operator!=(const Vector& lhs, const Vector& rhs);

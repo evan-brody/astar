@@ -57,6 +57,31 @@ namespace AStar {
         return !(lhs < rhs);
     }
 
+    bool Node::sameStateAs(const Node& rhs) const {
+        return pos == rhs.pos && orientation == rhs.orientation;
+    }
+
+    /// @brief Bitwise-appends four signed 16-bit numbers to create a unique
+    /// 64-bit hash value representing the state of the node
+    /// The state of the node is defined as the tuple of its position and orientation
+    uint64_t Node::getStateHash() const {
+        uint64_t hashRes = 0;
+        uint16_t posX, posY, oriX, oriY;
+        posX = pos.getX(); posY = pos.getY();
+        oriX = orientation.getX(); oriY = orientation.getY();
+
+        hashRes |= *(uint64_t*)(&posX);
+
+        hashRes <<= sizeof(oriX) * 8;
+        hashRes |= *(uint64_t*)(&posY);
+
+        hashRes <<= sizeof(posY) * 8;
+        hashRes |= *(uint64_t*)(&oriX);
+
+        hashRes <<= sizeof(oriX) * 8;
+        return hashRes |= *(uint64_t*)(&oriY);
+    }
+
     const Vector& Node::getPos() const { return pos; }
 
     const Vector& Node::getOrientation() const { return orientation; }
