@@ -10,10 +10,13 @@
 
 namespace AStar {
     std::ostream& operator<<(std::ostream& os, const Node& rhs) {
-        return os << "Node: " << rhs.getPos();
+        os << "Node:\n";
+        os << "\tPosition:\t" << rhs.getPos() << '\n';
+        return os << "\tOrientation:\t" << rhs.getOrientation();
     }
 
     // This constructor is only used for the starting node
+    // Its orientation being 0 prevents a rotation cost being included in the first action
     Node::Node(const Map& parentMap, const Vector& pos)
         : parentMap(parentMap), parentNode(*this), pos(pos), orientation(0, 0),
         pathCost(0), heuristicCost(dist(parentMap.getGoalPos())) {}
