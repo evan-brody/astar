@@ -72,13 +72,13 @@ namespace AStar {
 
         hashRes |= *(uint64_t*)(&posX);
 
-        hashRes <<= sizeof(oriX) * 8;
+        hashRes <<= sizeof(posY) * 8;
         hashRes |= *(uint64_t*)(&posY);
 
-        hashRes <<= sizeof(posY) * 8;
+        hashRes <<= sizeof(oriX) * 8;
         hashRes |= *(uint64_t*)(&oriX);
 
-        hashRes <<= sizeof(oriX) * 8;
+        hashRes <<= sizeof(oriY) * 8;
         return hashRes |= *(uint64_t*)(&oriY);
     }
 
