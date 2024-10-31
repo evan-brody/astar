@@ -7,10 +7,14 @@
 #include "../inc/node.hpp"
 
 #include <iostream>
-#include <unordered_set>
+#include <algorithm>
 #include <vector>
 #include <fstream>
 #include <cmath>
+// TODO
+#include <chrono>
+#include <thread>
+ 
 
 namespace AStar {
     std::ostream& operator<<(std::ostream& os, const Map& map) {
@@ -22,9 +26,18 @@ namespace AStar {
         // ...
         // (GRID_WIDTH - 1)
         // Which is rotated 90 degrees clockwise from our visualization
+        // for (size_t j = GRID_HEIGHT; j > 0; j--) {
+        //     for (size_t i = 0; i < GRID_WIDTH; i++) {
+        //         os << map.grid[i][j - 1] << ' ';
+        //     }
+        //     os << '\n';
+        // }
+
+        // For debugging
+        os << '\n';
         for (size_t j = GRID_HEIGHT; j > 0; j--) {
             for (size_t i = 0; i < GRID_WIDTH; i++) {
-                os << map.grid[i][j - 1] << ' ';
+                os << (bool)map.visited[i][j - 1] << ' ';
             }
             os << '\n';
         }
@@ -39,17 +52,18 @@ namespace AStar {
         for (size_t j = GRID_HEIGHT; j > 0; j--) {
             for (size_t i = 0; i < GRID_WIDTH; i++) {
                 inputFile >> grid[i][j - 1];
+                visited[i][j - 1] = NOT_VISITED;
             }
         }
     }
 
     Map::Map(const Map& rhs)
-    : previousStates(rhs.previousStates), startPos(rhs.startPos),
-    goalPos(rhs.goalPos), k(rhs.k) {
-        // Deep copy grid
+    : startPos(rhs.startPos), goalPos(rhs.goalPos), k(rhs.k) {
+        // Deep copy grid and visited
         for (size_t i = 0; i < GRID_WIDTH; i++) {
             for (size_t j = 0; j < GRID_HEIGHT; j++) {
                 grid[i][j] = rhs.grid[i][j];
+                visited[i][j] = rhs.visited[i][j];
             }
         }
 
@@ -74,13 +88,11 @@ namespace AStar {
         generated.clear();
         frontier.clear();
         solutionPath.clear();
-        previousStates.clear();
 
         // Copy all fields, deeply where necessary
         startPos = rhs.startPos;
         goalPos = rhs.goalPos;
         k = rhs.k;
-        previousStates = rhs.previousStates;
 
         for (size_t i = 0; i < GRID_HEIGHT; i++) {
             for (size_t j = 0; j < GRID_WIDTH; j++) {
@@ -112,7 +124,6 @@ namespace AStar {
         generated.clear();
         frontier.clear();
         solutionPath.clear();
-        previousStates.clear();
     }
 
     void Map::pathFind() {
@@ -135,6 +146,12 @@ namespace AStar {
         while (!(frontier.empty() || reachedGoal)) {
             next = frontier.back();
             frontier.pop_back();
+
+            // TODO
+            using namespace std::chrono_literals;
+            system("cls");
+            std::cout << *this << std::endl;
+            std::this_thread::sleep_for(250ms);
 
             reachedGoal = expand(*next);
         }
@@ -239,13 +256,6 @@ namespace AStar {
                     maybeNeighbourY
                 );
 
-                // Check that we haven't generated this state already
-                // Requires C++ 20
-                if (previousStates.contains(neighbour->getStateHash())) {
-                    delete neighbour;
-                    continue;
-                }
-
                 // Add to our neighbours vector (unsorted)
                 toFill.push_back(neighbour);
             }
@@ -266,14 +276,37 @@ namespace AStar {
         getNeighbours(toExpand, neighbors);
 
         // Store neighbours
-        for (const Node* nodePtr : neighbors) {
+        for (size_t i = 0; i < neighbors.size(); i++) {
+            const Node* nodePtr = neighbors[i];
+
+            // Check that we haven't generated this state already
+            const Vector& nodePos = nodePtr->getPos();
+            const Node* oldNodePtr = nullptr;
+            if ((oldNodePtr = visited[nodePos.getX()][nodePos.getY()]) != NOT_VISITED) {
+                // We have! So we compare f(n) values and keep the minimum
+                if (*nodePtr < *oldNodePtr) {
+                    // New node is better, so delete old node
+                    std::erase(frontier, oldNodePtr);
+                    std::erase(generated, oldNodePtr);
+                    delete oldNodePtr;
+
+                    visited[nodePos.getX()][nodePos.getY()] = nodePtr;
+                } else { // Old node is better
+                    delete nodePtr;
+                    neighbors[i] = nullptr;
+                    continue; // Don't add new node to generated !
+                }
+            } else { // We haven't been here before
+                // So: mark that we have now
+                visited[nodePos.getX()][nodePos.getY()] = nodePtr;
+            }
             generated.push_back(nodePtr);
-            previousStates.insert(nodePtr->getStateHash());
         }
 
         // Insert the neighbors into the frontier while maintaining sorted order
         // (most costly node at index 0)
         for (const Node* nodePtr : neighbors) {
+            if (!nodePtr) { continue; }
             std::vector<const Node*>::const_iterator it = frontier.begin();
 
             // Find where it should be in the sorted frontier
