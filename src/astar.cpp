@@ -4,7 +4,6 @@
 
 #include "../inc/vector.hpp"
 #include "../inc/map.hpp"
-
 #include "../inc/node.hpp"
 
 #include <fstream>

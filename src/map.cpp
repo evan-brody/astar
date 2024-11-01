@@ -22,18 +22,9 @@ namespace AStar {
         // ...
         // (GRID_WIDTH - 1)
         // Which is rotated 90 degrees clockwise from our visualization
-        // for (size_t j = GRID_HEIGHT; j > 0; j--) {
-        //     for (size_t i = 0; i < GRID_WIDTH; i++) {
-        //         os << map.grid[i][j - 1] << ' ';
-        //     }
-        //     os << '\n';
-        // }
-
-        // For debugging
-        os << '\n';
         for (size_t j = GRID_HEIGHT; j > 0; j--) {
             for (size_t i = 0; i < GRID_WIDTH; i++) {
-                os << (bool)map.visited[i][j - 1] << ' ';
+                os << map.grid[i][j - 1] << ' ';
             }
             os << '\n';
         }
@@ -77,6 +68,7 @@ namespace AStar {
         if (this == &rhs) { return *this; }
 
         // Clear out our own information
+        // Generated is a superset of frontier and solutionPath
         for (const Node* nodePtr : generated) {
             delete nodePtr;
         }
@@ -123,19 +115,10 @@ namespace AStar {
     }
 
     void Map::pathFind() {
-        // In this case, no work to do
-        if (startPos == goalPos) {
-            solutionPath.push_back(new Node(*this, startPos));
-            return;
-        }
-
         // Expand the root node to begin
-        const Node* startNode = new Node(*this, startPos);
-        generated.push_back(startNode);
-        expand(*startNode);
-
-        const Node* next = nullptr;
-        bool reachedGoal = false;
+        const Node* next = new Node(*this, startPos);
+        generated.push_back(next);
+        bool reachedGoal = expand(*next);
 
         // Continually expand the lowest cost node
         // from the frontier until it runs out or we reach the goal node
@@ -152,6 +135,7 @@ namespace AStar {
                 solutionPath.push_back(backtrack);
                 backtrack = &backtrack->getParentNode();
             }
+            
             // Solution path will hold the root and goal nodes
             solutionPath.push_back(backtrack);
             // Put solution path in correct order (start at index 0)
