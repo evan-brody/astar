@@ -19,6 +19,7 @@
 #define START 2
 #define SOLUTION_PATH 4
 #define GOAL 5
+#define NOT_VISITED nullptr
 
 namespace AStar {
     class Node;
@@ -58,10 +59,10 @@ namespace AStar {
         bool expand(const Node& toExpand);
 
         int grid[GRID_WIDTH][GRID_HEIGHT];
+        const Node* visited[GRID_WIDTH][GRID_HEIGHT];
         std::vector<const Node*> frontier;
         std::vector<const Node*> generated;
         std::vector<const Node*> solutionPath;
-        std::unordered_set<uint64_t> previousStates;
         Vector startPos;
         Vector goalPos;
         double k;

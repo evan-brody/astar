@@ -23,16 +23,6 @@ namespace AStar {
 
         Node(const Map& parentMap, const Node& parentNode, int x, int y);
 
-        friend bool operator==(const Node& lhs, const Node& rhs);
-        friend bool operator<(const Node& lhs, const Node& rhs);
-
-        bool sameStateAs(const Node& rhs) const;
-
-        /// @brief Bitwise-appends four signed 16-bit numbers to create a unique
-        /// 64-bit hash value representing the state of the node
-        /// The state of the node is defined as the tuple of its position and orientation
-        uint64_t getStateHash() const;
-
         const Vector& getPos() const;
 
         const Vector& getOrientation() const;
@@ -70,6 +60,8 @@ namespace AStar {
         double heuristicCost;
     };
 
+    bool operator==(const Node& lhs, const Node& rhs);
+    bool operator<(const Node& lhs, const Node& rhs);
     bool operator!=(const Node& lhs, const Node& rhs);
     bool operator>(const Node& lhs, const Node& rhs);
     bool operator<=(const Node& lhs, const Node& rhs);
