@@ -14,10 +14,12 @@ using namespace AStar;
 
 const std::string solutionSuffix = "_solution.txt";
 
-int main() {
-    std::string inputFilename;
-    std::cout << "Enter the input file\'s name: ";
-    std::cin >> inputFilename;
+int main(int argc, char* argv[]) {
+    if (2 != argc) {
+        std::cerr << "ERROR:\nUsage: astar <filename>\n";
+        exit(1);
+    }
+    std::string inputFilename(argv[1]);
 
     // Open input file
     std::ifstream mapData(inputFilename);

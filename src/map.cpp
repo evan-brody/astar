@@ -11,10 +11,6 @@
 #include <vector>
 #include <fstream>
 #include <cmath>
-// TODO
-#include <chrono>
-#include <thread>
- 
 
 namespace AStar {
     std::ostream& operator<<(std::ostream& os, const Map& map) {
@@ -147,12 +143,6 @@ namespace AStar {
             next = frontier.back();
             frontier.pop_back();
 
-            // TODO
-            using namespace std::chrono_literals;
-            system("cls");
-            std::cout << *this << std::endl;
-            std::this_thread::sleep_for(250ms);
-
             reachedGoal = expand(*next);
         }
 
@@ -174,7 +164,7 @@ namespace AStar {
     }
 
     void Map::writeToFile(std::ofstream& outputFile) {
-        size_t depth = solutionPath.size() - 1;
+        size_t depth = solutionPath.size() - 1; // Don't include the root
         size_t numGenerated = generated.size();
 
         // Write depth
