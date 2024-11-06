@@ -6,6 +6,7 @@
 #define VECTOR_HPP
 
 #include <iostream>
+#include <cstdint>
 
 namespace AStar {
     // Represents a position in the 2D plane

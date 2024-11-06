@@ -8,10 +8,10 @@
 
 #include <fstream>
 #include <iostream>
+#include <format> // C++20
+#include <cmath>
 
 using namespace AStar;
-
-const std::string solutionSuffix = "_solution.txt";
 
 int main(int argc, char* argv[]) {
     if (2 != argc) {
@@ -45,6 +45,8 @@ int main(int argc, char* argv[]) {
     mapData.close();
 
     map.pathFind();
+
+    const std::string solutionSuffix = std::format("_k={}_solution.txt", round(k * 100) / 100.0);
 
     // Create solution file
     size_t lastDotPos = inputFilename.find_last_of('.'); // Remove file extension
