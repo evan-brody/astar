@@ -8,7 +8,6 @@
 #include "vector.hpp"
 
 #include <vector>
-#include <unordered_set>
 #include <iostream>
 #include <fstream>
 
